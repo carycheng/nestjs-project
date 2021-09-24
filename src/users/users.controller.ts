@@ -1,19 +1,35 @@
-import { Body, Controller, Post, Get, Patch, Param, Query, Delete, NotFoundException, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Body, Controller, Post, Get, Patch, Param, Query, Delete, NotFoundException, UseInterceptors, ClassSerializerInterceptor, Session } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
+import { AuthService } from './auth.service';
 
 @Serialize(UserDto)
 @Controller('auth')
 export class UsersController {
 
-    constructor(private usersService: UsersService) {}
+    constructor(private usersService: UsersService, private authService: AuthService) {}
+
+    @Get('/colors/:color')
+    setColor(@Param('color') color: string, @Session() session) {
+        session.color = color;
+    }
+
+    @Get('/colors')
+    getColor(@Session() session: any) {
+        return session.color;
+    }
 
     @Post('/signup')
     createUser(@Body() body: CreateUserDto) {
-        this.usersService.create(body.email, body.password);
+        return this.authService.signup(body.email, body.password);
+    }
+    
+    @Post('/signin')
+    signin(@Body() body: CreateUserDto) {
+        return this.authService.signin(body.email, body.password);
     }
 
     @Get('/:id')
