@@ -16,7 +16,7 @@ export class UsersService {
         return this.repo.save(user);
     }
 
-    fineOne(id: number) {
+    findOne(id: number) {
         return this.repo.findOne(id)
     }
 
