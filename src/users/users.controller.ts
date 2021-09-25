@@ -5,6 +5,7 @@ import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './current-user.decorator';
 
 @Serialize(UserDto)
 @Controller('auth')
@@ -22,9 +23,19 @@ export class UsersController {
         return session.color;
     }
 
+    // @Get('/whoami')
+    // whoAmI(@Session() session: any) {
+    //     return this.usersService.findOne(session.userId);
+    // }
+
     @Get('/whoami')
-    whoAmI(@Session() session: any) {
-        return this.usersService.findOne(session.userId);
+    whoAmI(@CurrentUser() user: User) {
+        return user;
+    }
+
+    @Post('/signout')
+    signOut(@Session() session: any) {
+        session.userId = null;
     }
 
     @Post('/signup')
@@ -43,7 +54,7 @@ export class UsersController {
 
     @Get('/:id')
     async findUser(@Param('id') id: string) {
-        const user = await this.usersService.fineOne(parseInt(id));
+        const user = await this.usersService.findOne(parseInt(id));
         if (!user) {
             throw new NotFoundException('unable to find user');
         }
