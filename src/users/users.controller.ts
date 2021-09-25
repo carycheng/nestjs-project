@@ -6,9 +6,12 @@ import { UsersService } from './users.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
+import { CurrentUserInterceptor } from './interceptors/current-user.interceptor';
+import { User } from './user.entity';
 
 @Serialize(UserDto)
 @Controller('auth')
+@UseInterceptors(CurrentUserInterceptor)
 export class UsersController {
 
     constructor(private usersService: UsersService, private authService: AuthService) {}
