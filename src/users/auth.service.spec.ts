@@ -9,9 +9,17 @@ describe('AuthService', () => {
 
     beforeEach( async () => {
         // Create a fake copy of the users service
+        const users: User[] = [];
         fakeUsersService = {
-            find: () => Promise.resolve([]),
-            create: (email: string, password: string) => Promise.resolve({ id: 1, email, password } as User)
+            find: (email: string) => {
+                const filteredUsers = users.filter(user => user.email === email)
+                return Promise.resolve(filteredUsers)
+            },
+            create: (email: string, password: string) => {
+                const user = ({id: Math.floor(Math.random() * 999999), email, password} as User)
+                users.push(user);
+                return Promise.resolve(user);
+            }
         }
         const module = await Test.createTestingModule({
             providers: [AuthService, { provide: UsersService, useValue: fakeUsersService}]
@@ -35,8 +43,9 @@ describe('AuthService', () => {
     });
 
     it('throws an error if user signs up with email that is already in use', (done) => {
-        fakeUsersService.find = () => Promise.resolve([{ id: 1, email: 'a', password: '1' } as User])
-        service.signup('asdf@asdf.com', 'asdf').catch(() => done());
+        service.signup('asdf@asdf.com', 'asdf').then((done) => {
+            service.signup('asdf@asdf.com', 'asdf').catch((done) => done());
+        })
     })
 
     it('throws if signin is called with an unused email', (done) => {
@@ -44,14 +53,15 @@ describe('AuthService', () => {
     });
 
     it('throws if an invalid password is provided', (done) => {
-        fakeUsersService.find = () => Promise.resolve([{ email: 'asdf@asdf.com', password: 'laskdjf'} as User ])
-        service.signin('asdfasdf@asdf.com', 'password').catch(() => done());
+        service.signup('asdf@asdf.com', 'mypassword').then((done) => {
+            service.signin('asdf@asdf.com', 'password').catch((done) => done());
+        })
     });
 
     it('returns a user if correct password is provided', async (done) => {
-        fakeUsersService.find = () => Promise.resolve([{ email: 'asdf@asdf.com', password: 'laskdjf'} as User ])
-
-        const user = await service.signin('asdf@asdf.com', 'password');
+        await service.signup('asdf@asdf.com', 'mypassword');
+        const user = await service.signin('asdf@asdf.com', 'mypassword');
         console.log(user);
+        expect(user).toBeDefined();
     });
 });
