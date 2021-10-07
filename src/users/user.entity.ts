@@ -13,6 +13,13 @@ export class User {
     @Column()
     password: string;
 
+    @Column({ default: true })
+    admin: boolean;
+
+    // Have to wrap in a function because there is a circular dependency.
+    // Report depends on User and User depends on Report. The function
+    // executes the code at a later instead of loading in the dependency
+    // immediately.
     @OneToMany(() => Report, (report) => report.user)
     reports: Report[];
 
